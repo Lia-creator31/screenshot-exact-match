@@ -50,63 +50,85 @@ void main() {
   vec3 base = texture2D(uImg, vUv).rgb;
   float t = uT;
 
-  /* ---- Falling water: streaks travel down, each column at its own pace,
-     speeding up as the water drops away from the lip. ---- */
+  /* ---- Falling water: the sheet has uneven thickness, every lane travels
+     at its own pace and accelerates as it drops away from the lip, and the
+     falling water refracts the rocks behind it. ---- */
   float drop = clamp((p.y - 26.0) / 210.0, 0.0, 1.0);
   float lane = n(vec2(p.x * 0.07, 3.1));
-  float spd = 55.0 + 55.0 * lane;
+  float sheet = smoothstep(0.15, 0.55, n(vec2(p.x * 0.045 + 7.7, 9.4)));
+  float spd = 50.0 + 62.0 * lane;
   float travel = p.y * (1.0 - 0.35 * drop) - t * spd;
-  float s1 = fbm(vec2(p.x * 0.12 + lane * 4.0, travel * 0.016));
-  float s2 = n(vec2(p.x * 0.38, (p.y - t * spd * 1.4) * 0.045));
-  float streak = s1 * 0.7 + s2 * 0.3;
-  vec3 fallC = base * mix(0.84, 1.07, smoothstep(0.25, 0.7, streak));
-  fallC = mix(fallC, vec3(0.99, 0.99, 1.0), smoothstep(0.6, 0.82, streak) * 0.6);
-  // glassy highlight rolling over the lip
+
+  // refraction: the falling sheet bends whatever is behind it
+  vec2 rw = vec2((n(vec2(p.x * 0.05, travel * 0.013)) - 0.5) * 5.0,
+                 (n(vec2(p.x * 0.09 + 4.0, travel * 0.02)) - 0.5) * 2.5);
+  vec3 fallBase = texture2D(uImg, vUv + rw / S).rgb;
+
+  // long stretched streaks plus fine detail, both racing down at the lane's pace
+  float s1 = fbm(vec2(p.x * 0.14 + lane * 4.0, travel * 0.02));
+  float s2 = n(vec2(p.x * 0.4, (p.y - t * spd * 1.5) * 0.05));
+  float streak = s1 * 0.65 + s2 * 0.35;
+
+  vec3 fallC = mix(fallBase, base, 0.45);
+  fallC *= mix(0.82, 1.14, smoothstep(0.2, 0.75, streak)) * mix(0.9, 1.06, sheet);
+  fallC = mix(fallC, vec3(0.98, 0.995, 1.0), smoothstep(0.55, 0.85, streak) * 0.65 * sheet);
+  // travelling sparkles gliding down the face of the water
+  float glint = n(vec2(p.x * 0.5, (p.y - t * spd * 1.25) * 0.11));
+  fallC += vec3(1.0) * smoothstep(0.78, 0.95, glint) * 0.35 * sheet;
+  // faint blue-green depth as the water falls away, glassy roll over the lip
+  fallC = mix(fallC, vec3(0.63, 0.80, 0.84), drop * 0.15);
   float lip = smoothstep(18.0, 30.0, p.y) * smoothstep(58.0, 34.0, p.y);
   fallC += vec3(1.0, 0.97, 0.92) * lip * smoothstep(0.55, 0.8, n(vec2(p.x * 0.09 - t * 0.35, 1.7))) * 0.3;
-  fallC = mix(fallC, vec3(0.66, 0.82, 0.86), 0.09); // faint blue-green depth
 
-  /* ---- Pool: gentle wobble of the painted reflections, rings spreading
-     from the impact point (squashed for perspective) and drifting glints. ---- */
+  /* ---- Pool: the painted reflections wobble, two families of rings spread
+     from the impact point (squashed for perspective), a broad slow swell
+     breathes across the surface, and glints drift with the current. ---- */
   vec2 rp = (p - IMPACT) * vec2(1.0, 2.6);
   float dist = length(rp);
-  float ring = sin(dist * 0.085 - t * 2.1);
+  float ring = sin(dist * 0.085 - t * 2.1) * 0.7 + sin(dist * 0.045 - t * 1.2) * 0.45;
   float att = exp(-dist / 240.0) * smoothstep(12.0, 48.0, dist);
   vec2 d = vec2((n(vec2(p.x * 0.03, p.y * 0.12 + t * 0.55)) - 0.5) * 3.2,
                 (n(vec2(p.x * 0.05 + t * 0.4, p.y * 0.2)) - 0.5) * 1.5);
   d += (rp / (dist + 0.001)) * vec2(1.0, 0.4) * ring * att * 2.4;
+  d.y += sin(p.x * 0.025 + t * 0.6) * 0.8;
   vec3 poolC = texture2D(uImg, vUv + d / S).rgb;
   float gl = n(vec2(p.x * 0.06 + t * 0.22, p.y * 0.24 - t * 0.08)) * n(vec2(p.x * 0.11 - t * 0.27, p.y * 0.36 + 2.0));
   poolC += vec3(1.0, 0.98, 0.95) * smoothstep(0.4, 0.62, gl) * 0.32;
-  poolC += vec3(0.07) * ring * att;
-  poolC *= vec3(0.96, 1.0, 1.02);
+  poolC += vec3(0.05, 0.07, 0.08) * ring * att;
+  poolC = mix(poolC, poolC * vec3(0.92, 1.0, 1.05), 0.7);
 
   /* ---- Foam & spray where the water hits the pool ---- */
   vec2 fp = p - IMPACT;
   float boil = fbm(vec2(fp.x * 0.05 + sin(t * 0.6) * 0.3, fp.y * 0.1 + t * 0.9)) * 0.6
              + fbm(vec2(fp.x * 0.11, fp.y * 0.13 + t * 1.7)) * 0.5;
-  float foam = m.b * smoothstep(0.38, 0.72, boil);
+  float foam = m.b * smoothstep(0.35, 0.7, boil);
+  // thin foam strands carried a little outward from the boil
+  float outward = smoothstep(26.0, 85.0, length(fp * vec2(1.0, 1.8)));
+  foam += m.b * smoothstep(0.55, 0.85, boil * 0.7 + n(vec2(fp.x * 0.02 - t * 0.5, fp.y * 0.05))) * outward * 0.4;
+
   float spray = 0.0;
-  for (int i = 0; i < 2; i++) {
-    float cs = 5.0 + float(i) * 3.0;
-    vec2 g = (p + vec2(0.0, t * (14.0 + float(i) * 9.0))) / cs;
+  for (int i = 0; i < 3; i++) {
+    float fs = float(i);
+    float cs = 5.0 + fs * 3.0;
+    vec2 g = (p + vec2(0.0, t * (14.0 + fs * 9.0))) / cs;
     vec2 id = floor(g);
-    float r = h(id + float(i) * 7.3);
+    float r = h(id + fs * 7.3);
     float life = fract(t * (0.7 + r) + r * 9.0);
     vec2 c = vec2(h(id + 3.1), h(id + 5.7)) * 0.6 + 0.2;
     float dot1 = smoothstep(0.16, 0.0, length(fract(g) - c));
     spray += dot1 * step(0.72, r) * sin(life * 3.14159);
   }
-  spray *= smoothstep(0.15, 0.6, m.a) * 0.7;
+  spray *= smoothstep(0.15, 0.6, m.a) * 0.65;
 
-  /* ---- Thin mist drifting up from the base ---- */
-  float mist = fbm(vec2(p.x * 0.016 + t * 0.04, p.y * 0.028 + t * 0.1));
-  mist = smoothstep(0.38, 0.85, mist) * m.a * 0.42;
+  /* ---- Thin mist drifting up from the base, two layers at different speeds ---- */
+  float m1 = smoothstep(0.38, 0.85, fbm(vec2(p.x * 0.016 + t * 0.04, p.y * 0.028 + t * 0.1)));
+  float m2 = smoothstep(0.5, 0.9, fbm(vec2(p.x * 0.03 - t * 0.05, p.y * 0.05 + t * 0.16 + 5.0)));
+  float mist = (m1 * 0.42 + m2 * 0.26) * m.a;
 
   vec3 col = base;
   float a = 0.0;
   col = mix(col, poolC, m.g); a = max(a, m.g);
-  col = mix(col, fallC, m.r); a = max(a, m.r);
+  col = mix(col, fallC, m.r); a = max(a, m.r * mix(0.86, 1.0, drop));
   float white = clamp(foam * 0.85 + spray, 0.0, 1.0);
   col = mix(col, vec3(1.0, 0.995, 1.0), white); a = max(a, white);
   col = mix(col, vec3(0.99, 0.97, 1.0), mist); a = max(a, mist);
