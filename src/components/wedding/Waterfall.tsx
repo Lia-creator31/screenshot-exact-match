@@ -229,7 +229,9 @@ export function Waterfall() {
     };
 
     const ro = new ResizeObserver(resize);
-    const io = new IntersectionObserver(([e]) => {
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[entries.length - 1];
+      if (!e) return;
       visible = e.isIntersecting;
       play();
     });
