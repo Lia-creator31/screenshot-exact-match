@@ -13,7 +13,7 @@ import { WEDDING, buildWhatsappUrl, getCountdown } from "./data";
 import { PalaceGate } from "./PalaceGate";
 import { GuestTicket } from "./GuestTicket";
 import { decodeGuestToken, encodeGuestToken, normalizeCategory, type DecodedGuestTicket } from "@/lib/guests";
-import { GardenIntro, FloralCorner, Butterfly, Garland, WisteriaHang, SectionSparkles, Filigree } from "./Garden";
+import { GardenIntro, FloralCorner, Butterfly, Garland, WisteriaHang, SectionSparkles, Filigree, CastleBackdrop } from "./Garden";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -75,21 +75,22 @@ function SaveTheDate() {
     ["Hari", cd.days], ["Jam", cd.hours], ["Menit", cd.minutes], ["Detik", cd.seconds],
   ] as const;
   return (
-    <section className="relative isolate overflow-hidden bg-band pb-16 text-cream">
+    <section className="relative isolate overflow-hidden pb-16 text-cream">
+      <CastleBackdrop dark />
       <SectionSparkles count={9} className="top-[45%] -z-10" />
       <WisteriaHang side="left" className="z-10 w-28" />
       <WisteriaHang side="right" className="z-10 w-28" delay={0.2} />
       <Filigree corner="bl" />
       <Filigree corner="br" />
-      <motion.div
-        className="overflow-hidden"
-        initial={{ clipPath: "inset(0 0 100% 0)" }}
-        whileInView={{ clipPath: "inset(0 0 0% 0)" }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 1.4, ease }}
-      >
-        <img src={couple.url} alt="Nella & Broni" className="aspect-[4/5] w-full object-cover object-top" />
-      </motion.div>
+      <Reveal className="px-10 pt-14">
+        <div className="relative">
+          <div className="arch absolute -inset-2 border border-lilac/60" />
+          <div className="arch relative overflow-hidden border-2 border-gold/70 shadow-soft">
+            <img src={couple.url} alt="Nella & Broni" className="aspect-[4/5] w-full object-cover object-top" />
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/25 via-transparent to-transparent" />
+          </div>
+        </div>
+      </Reveal>
       <div className="px-8 pt-10">
         <ScriptTitle light>Save The Date</ScriptTitle>
         <Reveal delay={0.2} className="mt-3 text-center font-serif text-lg">{WEDDING.akad.day}</Reveal>
@@ -122,7 +123,8 @@ function SaveTheDate() {
 /* 4. QURAN */
 function Quote() {
   return (
-    <section className="paper relative isolate overflow-hidden bg-soft px-8 pb-28 pt-20 text-center">
+    <section className="paper relative isolate overflow-hidden px-8 pb-28 pt-20 text-center">
+      <CastleBackdrop />
       <Filigree corner="tl" />
       <Filigree corner="tr" />
       <Butterfly className="right-[10%] top-[38%]" size={22} dur={14} delay={0.5} path={{ x: [0, -30, -60, -20, 0], y: [0, 20, -10, 30, 0] }} />
@@ -173,7 +175,8 @@ function Person({ p, img, role, from }: { p: typeof WEDDING.bride; img: string; 
 
 function Couple() {
   return (
-    <section className="paper relative overflow-hidden bg-cream px-8 py-20">
+    <section className="paper relative isolate overflow-hidden px-8 py-20">
+      <CastleBackdrop />
       <Filigree corner="tl" />
       <Filigree corner="br" />
       <FloralCorner className="-right-14 -top-2 rotate-180" />
@@ -210,7 +213,8 @@ function EventBlock({ e }: { e: typeof WEDDING.akad }) {
 
 function Events() {
   return (
-    <section className="paper relative overflow-hidden bg-soft px-6 py-20">
+    <section className="paper relative isolate overflow-hidden px-6 py-20">
+      <CastleBackdrop />
       <FloralCorner className="-left-12 top-6 rotate-180" flip />
       <FloralCorner className="-bottom-2 -right-12" flip delay={0.2} />
       <Butterfly className="right-[12%] top-10 z-10" size={22} dur={15} delay={0.8} path={{ x: [0, -35, -70, -25, 0], y: [0, 15, -10, 25, 0] }} />
@@ -232,7 +236,8 @@ function Gallery() {
   const imgs = [couple.url, bride.url, groom.url, couple.url, groom.url, bride.url];
   const [open, setOpen] = useState<string | null>(null);
   return (
-    <section className="relative isolate overflow-hidden bg-band px-4 py-20">
+    <section className="relative isolate overflow-hidden px-4 py-20">
+      <CastleBackdrop dark />
       <SectionSparkles count={10} className="-z-10" />
       <WisteriaHang side="left" className="-z-10" />
       <WisteriaHang side="right" className="-z-10" delay={0.2} />
@@ -275,7 +280,8 @@ function WeddingGift() {
     catch { toast.error("Gagal menyalin, silakan salin manual."); }
   };
   return (
-    <section className="paper relative isolate overflow-hidden bg-cream px-6 pb-28 pt-20">
+    <section className="paper relative isolate overflow-hidden px-6 pb-28 pt-20">
+      <CastleBackdrop />
       <Butterfly className="right-[14%] top-14" size={24} dur={14} delay={1} path={{ x: [0, -40, -70, -20, 0], y: [0, 20, -10, 30, 0] }} />
       <Filigree corner="tl" />
       <Filigree corner="tr" />
@@ -332,7 +338,8 @@ function Rsvp({ guest }: { guest: string | null }) {
     window.open(buildWhatsappUrl(WEDDING.whatsapp, form), "_blank");
   };
   return (
-    <section className="relative isolate overflow-hidden bg-soft px-6 py-20">
+    <section className="relative isolate overflow-hidden px-6 py-20">
+      <CastleBackdrop />
       <FloralCorner className="-right-14 -top-2 w-44 rotate-180" />
       <FloralCorner className="-bottom-3 -left-14 -z-10 w-40" flip delay={0.2} />
       <Butterfly className="left-[10%] top-20" size={22} dur={15} delay={0.6} path={{ x: [0, 40, 80, 30, 0], y: [0, -15, 20, 35, 0] }} />
@@ -383,7 +390,8 @@ function Wishes() {
     toast.success("Terima kasih atas ucapannya!");
   };
   return (
-    <section className="relative isolate overflow-hidden bg-band px-6 py-20">
+    <section className="relative isolate overflow-hidden px-6 py-20">
+      <CastleBackdrop dark />
       <SectionSparkles count={10} className="-z-10" />
       <WisteriaHang side="left" className="-z-10" />
       <WisteriaHang side="right" className="-z-10" delay={0.2} />
@@ -413,7 +421,8 @@ function Wishes() {
 /* 11. FOOTER */
 function Footer() {
   return (
-    <footer className="relative isolate overflow-hidden bg-cream px-6 pb-24 pt-10 text-center">
+    <footer className="relative isolate overflow-hidden px-6 pb-24 pt-10 text-center">
+      <CastleBackdrop />
       <SectionSparkles count={7} className="-z-10" />
       <Butterfly className="left-[10%] top-[48%]" size={22} dur={16} path={{ x: [0, 50, 90, 40, 0], y: [0, -25, 10, 30, 0] }} />
       <Garland flip className="-bottom-3 w-[104%] opacity-90" delay={0.3} />

@@ -130,6 +130,24 @@
 @utility cover-veil {
   background-image: radial-gradient(ellipse at center, oklch(0.985 0.008 80 / 0.82) 0%, oklch(0.985 0.008 80 / 0.5) 45%, transparent 72%);
 }
+/* Blurred-castle backdrops: the veil only tints the image behind the content */
+@utility castle-veil {
+  background-image: linear-gradient(
+    180deg,
+    oklch(0.985 0.008 80 / 0.82) 0%,
+    oklch(0.95 0.03 310 / 0.6) 45%,
+    oklch(0.93 0.035 140 / 0.55) 80%,
+    oklch(0.985 0.008 80 / 0.82) 100%
+  );
+}
+@utility castle-veil-dark {
+  background-image: linear-gradient(
+    180deg,
+    oklch(0.3 0.07 265 / 0.78) 0%,
+    oklch(0.32 0.08 300 / 0.62) 50%,
+    oklch(0.3 0.07 265 / 0.78) 100%
+  );
+}
 @utility bg-sky { background-image: var(--gradient-sky); }
 @utility bg-sheen { background-image: var(--gradient-sheen); }
 @utility bg-doorlight { background-image: var(--gradient-doorlight); }
