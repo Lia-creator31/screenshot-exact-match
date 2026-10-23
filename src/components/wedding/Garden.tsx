@@ -54,6 +54,23 @@ export function FloralCorner({ className, flip, delay = 0 }: { className?: strin
   );
 }
 
+/* Soft-focus castle backdrop shared by every section after the gate.
+   Only the castle image is blurred — the content above it stays sharp. */
+export function CastleBackdrop({ dark = false }: { dark?: boolean }) {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-20 overflow-hidden">
+      <img
+        src={castle.url}
+        alt=""
+        loading="lazy"
+        className="absolute inset-0 h-full w-full scale-110 object-cover"
+        style={{ filter: "blur(18px)", objectPosition: "50% 22%" }}
+      />
+      <div className={`absolute inset-0 ${dark ? "castle-veil-dark" : "castle-veil"}`} />
+    </div>
+  );
+}
+
 function Layer({ x, y, className, children }: { x: MotionValue<number>; y: MotionValue<string>; className?: string; children: React.ReactNode }) {
   return (
     <motion.div className={`gpu pointer-events-none absolute inset-0 ${className ?? ""}`} style={{ x, y }}>
